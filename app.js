@@ -72,7 +72,7 @@ function addHeaderRow() {
     $('<div class="row header-row">').append($('<div class="col-sm-2">').text("Train Name"),
         $('<div class="col-sm-2">').text("Destination"),
         $('<div class="col-sm-2">').text("Frequency (min)"),
-        $('<div class="col-sm-2">').text("Next Arrival (HH:mm)"),
+        $('<div class="col-sm-2">').text("Next Arrival"),
         $('<div class="col-sm-2">').text("Arrives In"),
         $('<div class="col-sm-2">').text("Actions")).appendTo($('.train-content'));
 }
