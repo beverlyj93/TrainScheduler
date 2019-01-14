@@ -5,7 +5,7 @@ const config = {
     projectId: "trainscheduler-5da9e",
     storageBucket: "trainscheduler-5da9e.appspot.com",
     messagingSenderId: "64201272535"
-  };
+};
 const settings = {
     timestampsInSnapshots: true
 };
@@ -18,7 +18,7 @@ database.settings(settings);
  * @param  {object} jsonData Document field data. Doesn't support functions.
  */
 function createDocument(docID, jsonData) {
-    if(docID == undefined) database.collection('trains').add(jsonData);
+    if (docID == undefined) database.collection('trains').add(jsonData);
     else database.collection('trains').doc(docID).set(jsonData);
 }
 
@@ -52,45 +52,58 @@ function validateTime(time) {
     return moment(time, "HH:mm", true).isValid();
 }
 
-function refreshPage() {
-    location.reload();
-}
-
 /**
  * @param {string} time The future time value in which to get the minutes remaining from the current time.
  */
 function timeRemaining(time, interval, docID) {
-    if(moment().format("YYYY-MM-DD HH:mm") >= moment().format(`YYYY-MM-DD ${time}`)) {
+    if (moment().format("YYYY-MM-DD HH:mm") >= moment().format(`YYYY-MM-DD ${time}`)) {
         let newTime = moment().add(interval, 'minutes').format("HH:mm");
         updateDocument(docID, {
             Arrival: newTime
         })
         time = newTime;
     }
-    
+
     return moment(time, "HH:mm").endOf('minute').fromNow("HH:mm");
     //return moment.utc(moment(moment(time, "HH:mm"), "HH:mm").diff(moment(moment().format("HH:mm"), "HH:mm"))).format("H:mm");
 }
 
+function addHeaderRow() {
+    $('<div class="row header-row">').append($('<div class="col-sm-2">').text("Train Name"),
+        $('<div class="col-sm-2">').text("Destination"),
+        $('<div class="col-sm-2">').text("Frequency (min)"),
+        $('<div class="col-sm-2">').text("Next Arrival (HH:mm)"),
+        $('<div class="col-sm-2">').text("Arrives In"),
+        $('<div class="col-sm-2">').text("Actions")).appendTo($('.train-content'));
+}
+
 function addRow(trainName, trainDest, trainArrival, trainFrequency, trainMinutes) {
     $('<div>').attr('class', `row ${formatName(trainName)}`).append($('<div>').addClass('col-sm-2 train-name').text(trainName),
-    $('<div>').addClass('col-sm-2 train-destination').text(trainDest),
-    $('<div>').addClass('col-sm-2 train-frequency').text(trainFrequency),
-    $('<div>').addClass('col-sm-2 train-arrival').text(trainArrival),
-    $('<div>').addClass('col-sm-2 train-minutes').text(trainMinutes),
-    $('<a style="color: red" href="#">').addClass('col-sm-2').attr('value', formatName(trainName)).text("Delete").click(function() {
-        let tn = $(`.${$(this).attr('value')} > .train-name`)[0];
-        deleteDocument($(tn).html());
-        $(`.${$(this).attr('value')}`).remove();
-    })).appendTo('.train-content');
+        $('<div>').addClass('col-sm-2 train-destination').text(trainDest),
+        $('<div>').addClass('col-sm-2 train-frequency').text(trainFrequency),
+        $('<div>').addClass('col-sm-2 train-arrival').text(trainArrival),
+        $('<div>').addClass('col-sm-2 train-minutes').text(trainMinutes),
+        $('<a style="color: red" href="#">').addClass('col-sm-2').attr('value', formatName(trainName)).text("Delete").click(function () {
+            let tn = $(`.${$(this).attr('value')} > .train-name`)[0];
+            deleteDocument($(tn).html());
+            // $(`.${$(this).attr('value')}`).remove();
+            populateTrains();
+        })).appendTo('.train-content');
 }
 
 function populateTrains() {
+    $('.train-content').empty();
     let doc = database.collection('trains');
     doc.get().then(value => {
-        value.forEach(result => {
-            addRow(result.id, result.data().Destination, result.data().Arrival, result.data().Frequency, timeRemaining(result.data().Arrival, result.data().Frequency, result.id));
-        })
+        if (value.docs.length == 0) {
+            $('.train-content').text("You don't have any trains yet. You can add one below.");
+            return;
+        } else {
+            addHeaderRow();
+            value.forEach(result => {
+                addRow(result.id, result.data().Destination, result.data().Arrival, result.data().Frequency, timeRemaining(result.data().Arrival, result.data().Frequency, result.id));
+            })
+        }
     })
 }
 
@@ -99,15 +112,15 @@ function populateTrains() {
 $('.btn-info').click(event => {
     event.preventDefault();
 
-    let trainName = $('#train-name').val(), 
+    let trainName = $('#train-name').val(),
         trainDest = $('#train-destination').val(),
         trainArrival = $('#train-arrival').val(),
         trainFrequency = $('#train-frequency').val();
-    
-    if(!validateTime(trainArrival)) { alert("First train time must be in a valid HH:mm format.\n\nThe time must also be in the future."); return; }
-    if(trainName.length == 0) { alert("What's the Train's name...?"); return; }
-    if(trainDest.length == 0) { alert("Where's the Train heading...?"); return; }
-    if(!parseInt(trainFrequency)) { alert('Frequency must be a number'); return; }
+
+    if (!validateTime(trainArrival)) { alert("First train time must be in a valid HH:mm format.\n\nThe time must also be in the future."); return; }
+    if (trainName.length == 0) { alert("What's the Train's name...?"); return; }
+    if (trainDest.length == 0) { alert("Where's the Train heading...?"); return; }
+    if (!parseInt(trainFrequency)) { alert('Frequency must be a number'); return; }
 
     createDocument(trainName, {
         Destination: trainDest,
@@ -115,7 +128,7 @@ $('.btn-info').click(event => {
         Arrival: trainArrival,
     })
 
-    addRow(trainName, trainDest, trainArrival, trainFrequency, timeRemaining(trainArrival, trainFrequency, trainName));
+    populateTrains();
     $('form').trigger('reset');
 })
 
