@@ -52,11 +52,24 @@ function validateTime(time) {
     return moment(time, "HH:mm", true).isValid();
 }
 
+function refreshPage() {
+    location.reload();
+}
+
 /**
  * @param {string} time The future time value in which to get the minutes remaining from the current time.
  */
-function minutesRemaining(time) {
-    return moment.utc(moment(moment(time, "HH:mm"), "HH:mm").diff(moment(moment().format("HH:mm"), "HH:mm"))).format("H:mm");
+function timeRemaining(time, interval, docID) {
+    if(moment().format("YYYY-MM-DD HH:mm") >= moment().format(`YYYY-MM-DD ${time}`)) {
+        let newTime = moment().add(interval, 'minutes').format("HH:mm");
+        updateDocument(docID, {
+            Arrival: newTime
+        })
+        time = newTime;
+    }
+    
+    return moment(time, "HH:mm").endOf('minute').fromNow("HH:mm");
+    //return moment.utc(moment(moment(time, "HH:mm"), "HH:mm").diff(moment(moment().format("HH:mm"), "HH:mm"))).format("H:mm");
 }
 
 function addRow(trainName, trainDest, trainArrival, trainFrequency, trainMinutes) {
@@ -76,7 +89,7 @@ function populateTrains() {
     let doc = database.collection('trains');
     doc.get().then(value => {
         value.forEach(result => {
-            addRow(result.id, result.data().Destination, result.data().Arrival, result.data().Frequency, minutesRemaining(result.data().Arrival));
+            addRow(result.id, result.data().Destination, result.data().Arrival, result.data().Frequency, timeRemaining(result.data().Arrival, result.data().Frequency, result.id));
         })
     })
 }
@@ -91,20 +104,18 @@ $('.btn-info').click(event => {
         trainArrival = $('#train-arrival').val(),
         trainFrequency = $('#train-frequency').val();
     
-    if(!validateTime(trainArrival)) { alert("First train time must be in a valid HH:mm format."); return; }
+    if(!validateTime(trainArrival)) { alert("First train time must be in a valid HH:mm format.\n\nThe time must also be in the future."); return; }
     if(trainName.length == 0) { alert("What's the Train's name...?"); return; }
     if(trainDest.length == 0) { alert("Where's the Train heading...?"); return; }
     if(!parseInt(trainFrequency)) { alert('Frequency must be a number'); return; }
-
-    let viewTime = minutesRemaining(trainArrival);
 
     createDocument(trainName, {
         Destination: trainDest,
         Frequency: trainFrequency,
         Arrival: trainArrival,
-        Minutes: viewTime
     })
-    addRow(trainName, trainDest, trainArrival, trainFrequency, viewTime);
+
+    addRow(trainName, trainDest, trainArrival, trainFrequency, timeRemaining(trainArrival, trainFrequency, trainName));
     $('form').trigger('reset');
 })
 
