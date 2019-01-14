@@ -1,0 +1,46 @@
+.row {
+    padding: 5px 0px;
+    border-bottom: 1px solid slategray;
+}
+
+.header-row {
+    font-weight: bold;
+}
+
+.btn-info {
+    width: 100%;
+}
+
+header {
+    background-color: lightslategrey;
+    padding: 25px 0px;
+    margin-bottom: 25px;
+    color: whitesmoke;
+}
+
+h4 {
+    background: lightslategray;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    padding: 10px 0px;
+    color: white;
+}
+
+form {
+    padding: 20px;
+}
+
+.jumbotron-fluid {
+    padding-bottom: 25px;
+}
+
+.train-content {
+    padding: 20px;
+}
+
+.trains, .new-trains {
+    border: 1px solid slategray;
+}
+
+.btn-danger {
+    padding: 2px 0px;
+}
