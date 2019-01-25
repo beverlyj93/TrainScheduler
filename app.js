@@ -63,9 +63,7 @@ function timeRemaining(time, interval, docID) {
         })
         time = newTime;
     }
-
     return moment(time, "HH:mm").endOf('minute').fromNow("HH:mm");
-    //return moment.utc(moment(moment(time, "HH:mm"), "HH:mm").diff(moment(moment().format("HH:mm"), "HH:mm"))).format("H:mm");
 }
 
 function addHeaderRow() {
@@ -86,7 +84,6 @@ function addRow(trainName, trainDest, trainArrival, trainFrequency, trainMinutes
         $('<a style="color: red" href="#">').addClass('col-sm-2').attr('value', formatName(trainName)).text("Delete").click(function () {
             let tn = $(`.${$(this).attr('value')} > .train-name`)[0];
             deleteDocument($(tn).html());
-            // $(`.${$(this).attr('value')}`).remove();
             populateTrains();
         })).appendTo('.train-content');
 }
